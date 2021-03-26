@@ -12,10 +12,8 @@ import PostImages from "./PostImages";
 import { useState, useCallback } from "react";
 import CommentForm from "./CommentForm";
 import PostCardContent from "./PostCardContent";
-import {
-  removePostRequestAction,
-  REMOVE_POST_REQUEST,
-} from "../reducers/posts";
+import { REMOVE_POST_REQUEST } from "../reducers/posts";
+import FollowButton from "./FollowButton";
 
 const PostCard = ({ post }) => {
   const [liked, setLiked] = useState(false);
@@ -75,6 +73,7 @@ const PostCard = ({ post }) => {
             <EllipsisOutlined />
           </Popover>,
         ]}
+        extra={id && <FollowButton post={post} />}
       >
         <Card.Meta
           avatar={<Avatar>{post.User.nickname[0]}</Avatar>}

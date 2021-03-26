@@ -17,8 +17,8 @@ const PostImages = ({ images }) => {
         <img
           role="presentation"
           style={{
-            width: "50%",
-            display: "inline-block",
+            // width: "50%",
+            // display: "inline-block",
             border: "1px solid #f0f0f0",
           }}
           src={images[0].src}
