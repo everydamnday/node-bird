@@ -1,10 +1,11 @@
 import Applayout from "../components/Applayout";
 import Head from "next/head";
+import Router from "next/router"
 import { Input, Form, Checkbox, Button } from "antd";
 import useInput from "../hooks/useInput";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import styled from "styled-components";
-import { signUpRequestAction } from "../reducers/user";
+import { SIGN_UP_REQUEST } from "../reducers/user";
 import { useDispatch, useSelector } from "react-redux";
 
 const ErrorMessage = styled.div`
@@ -18,7 +19,22 @@ const Signup = () => {
   const [passwordCheck, setPasswordCheck] = useState("");
   const [PasswordError, setPasswordError] = useState(false);
   const dispatch = useDispatch();
-  const { signUpLoading } = useSelector((state) => state.user);
+  const { signUpLoading, signUpDone, me } = useSelector((state) => state.user);
+
+  // 로그인된 이용자는 회원가입 페이지 접근 불가 (홈페이지 돌아가기?와 차이가 있는 것 아닌가)
+  useEffect(() => {
+    if (me && me.id) {
+      Router.replace("/");
+    }
+  }, [me && me.id]);
+
+  // 회원가입 후 홈페이지 돌아가기
+  useEffect(() => {
+    if(signUpDone) {
+      Router.replace('/')
+      // signUpDone의 상태도 다시 false로 돌아가야 할 듯.(안그러면 다시 회원가입 페이지로 돌아가지 못함)
+    }
+  }, [signUpDone])
 
   //비밀번호 확인 관리
   const onChangePasswordCheck = useCallback(
@@ -45,7 +61,10 @@ const Signup = () => {
     if (password !== passwordCheck) {
       return setPasswordCheck(true);
     }
-    dispatch(signUpRequestAction({ email, nickname, password, term }));
+    dispatch({
+      type : SIGN_UP_REQUEST, 
+      data : { email, nickname, password, term }
+    });
     console.log(email, nickname, password, term);
   }, [term, password, passwordCheck]);
 

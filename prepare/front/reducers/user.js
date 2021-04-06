@@ -4,30 +4,38 @@ import produce from "immer";
 //////////////////////////////////////////////  초기값  //////////////////////////////////////////////
 
 const initialState = {
+  loadUserLoading: false, // 유저 정보 가져오기 로딩중
+  loadUserDone: false,  
+  loadUserError: null,
   logInLoading: false, // 로그인 로딩중
-  logInDone: false, // 로그인 완료
-  logInError: null, // 로그인 에러
+  logInDone: false, 
+  logInError: null, 
   logOutLoading: false, // 로그아웃 로딩중
-  logOutDone: false, // 로그아웃 완료
-  logOutError: null, // 로그아웃 에러
+  logOutDone: false, 
+  logOutError: null,
   signUpLoading: false, // 회원가입 로딩중
-  signUpDone: false, // 회원가입 완료
-  signUpError: null, // 회원가입 에러
+  signUpDone: false, 
+  signUpError: null, 
   followLoading: false, // 팔로우 로딩중
-  followDone: false, // 팔로우 완료
-  followError: null, // 팔로우 에러
+  followDone: false, 
+  followError: null, 
   unFollowLoading: false, // 언팔로우 로딩중
-  unFollowDone: false, // 언팔로우 완료
-  unFollowError: null, // 언팔로우 에러
+  unFollowDone: false, 
+  unFollowError: null, 
   chgNickLoading: false, // 닉네임 변경 로딩중
-  chgNickDone: false, // 닉네임 변경 완료
-  chgNickError: null, // 닉네임 변경 에러
+  chgNickDone: false, 
+  chgNickError: null, 
   me: null, // 유저 데이터
   signUpData: {}, // 회원가입 입력값
   loginData: {}, // 로그인 입력값
 };
 
 //////////////////////////////////////////////  액션 변수  //////////////////////////////////////////////
+
+// LOAD_USER
+export const LOAD_USER_REQUEST = "LOAD_USER_REQUEST";
+export const LOAD_USER_SUCCESS = "LOAD_USER_SUCCESS";
+export const LOAD_USER_FAILURE = "LOAD_USER_FAILURE";
 
 // LOG_IN
 export const LOG_IN_REQUEST = "LOG_IN_REQUEST";
@@ -76,32 +84,35 @@ const dummyUser = (data) => ({
 
 //////////////////////////////////////////////  액션 크리에이터  //////////////////////////////////////////////
 
+
+////////////   LOAD_USER 액션 크리에이터   ////////////
+export const loadUserRequestAction = () => {
+  return { type: LOAD_USER_REQUEST };
+};
+
 ////////////   LOG_IN 액션 크리에이터   ////////////
 export const logInRequestAction = (data) => {
-  console.log(data);
-  return { type: LOG_IN_REQUEST, data };
+  return { type: LOG_IN_REQUEST, data }
 };
 ////////////   LOG_OUT 액션 크리에이터   ////////////
 export const logOutRequestAction = () => {
-  return { type: LOG_OUT_REQUEST };
+  return { type: LOG_OUT_REQUEST }
 };
 ////////////   SIGN_UP 액션 크리에이터   ////////////
 export const signUpRequestAction = (data) => {
-  console.log(data);
-  return { type: SIGN_UP_REQUEST, data };
+  return { type: SIGN_UP_REQUEST, data }
 };
 ////////////   FOLLOW 액션 크리에이터   ////////////
 export const followRequestAction = (data) => {
-  return { type: FOLLOW_REQUEST, data };
+  return { type: FOLLOW_REQUEST, data }
 };
 ////////////  UNFOLLOW 액션 크리에이터  ////////////
 export const unFollowRequestAction = (data) => {
-  return { type: UNFOLLOW_REQUEST, data };
+  return { type: UNFOLLOW_REQUEST, data }
 };
 ////////////  CHANGE_NICKNAME 액션 크리에이터 ////////////
 export const chgNickRequestAction = (data) => {
-  console.log(data);
-  return { type: CHANGE_NICKNAME_REQUEST, data };
+  return { type: CHANGE_NICKNAME_REQUEST, data }
 };
 
 ///////////////////////////////////////  리듀서  ///////////////////////////////////
@@ -109,6 +120,23 @@ export const chgNickRequestAction = (data) => {
 const user = (state = initialState, action) => {
   return produce(state, (draft) => {
     switch (action.type) {
+      //////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////// LOAD_USER ///////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////
+      case LOAD_USER_REQUEST:
+        draft.loadUserLoading = true;
+        draft.loadUserDone = false;
+        draft.loadUserError = null;
+        break;
+      case LOAD_USER_SUCCESS:
+        draft.loadUserLoading = false;
+        draft.loadUserDone = true;
+        draft.me = action.data;
+        break;
+      case LOAD_USER_FAILURE:
+        draft.loadUserLoading = false;
+        draft.loadUserError = action.error;
+        break;
       //////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////// LOG_IN ///////////////////////////////////
       //////////////////////////////////////////////////////////////////////////////
@@ -120,7 +148,7 @@ const user = (state = initialState, action) => {
       case LOG_IN_SUCCESS:
         draft.logInLoading = false;
         draft.logInDone = true;
-        draft.me = dummyUser(action.data);
+        draft.me = action.data;
         break;
       case LOG_IN_FAILURE:
         draft.logInLoading = false;
@@ -170,7 +198,7 @@ const user = (state = initialState, action) => {
       case FOLLOW_SUCCESS:
         draft.followLoading = false;
         draft.followDone = true;
-        draft.me.Followings.push({ id: action.data });
+        draft.me.Followings.push({ id: action.data.UserId, nickname : action.data.nickname });
         break;
       case FOLLOW_FAILURE:
         draft.followLoading = false;
@@ -188,7 +216,7 @@ const user = (state = initialState, action) => {
         draft.unFollowLoading = false;
         draft.unFollowDone = true;
         draft.me.Followings = draft.me.Followings.filter(
-          (v) => v.id !== action.data
+          (v) => v.id !== action.data.UserId
         );
         break;
       case UNFOLLOW_FAILURE:
@@ -206,7 +234,7 @@ const user = (state = initialState, action) => {
       case CHANGE_NICKNAME_SUCCESS:
         draft.chgNickLoading = false;
         draft.chgNickDone = true;
-        draft.me.nickname = "변경된 HAN";
+        draft.me.nickname = action.data.nickname;
         break;
       case CHANGE_NICKNAME_FAILURE:
         draft.chgNickLoading = false;
@@ -219,7 +247,7 @@ const user = (state = initialState, action) => {
         draft.me.Posts.unshift({ id: action.data });
         break;
       case REMOVE_POST_OF_ME:
-        draft.me.Posts = draft.me.Posts.filter((v) => v.id !== action.data);
+        draft.me.Posts = draft.me.Posts.filter((v) => v.id !== action.data.PostId);
         break;
       default:
         break;

@@ -3,6 +3,8 @@ import { HYDRATE } from "next-redux-wrapper";
 import user from "./user";
 import posts from "./posts";
 
+
+
 const rootReducer = combineReducers({
   index: (state = {}, action) => {
     switch (action.type) {

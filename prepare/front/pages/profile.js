@@ -9,9 +9,10 @@ import { useEffect } from "react";
 const Profile = () => {
   const { me } = useSelector((state) => state.user);
 
+  // 로그아웃 후에 홈페이지로 돌아가기
   useEffect(() => {
     if (!(me && me.id)) {
-      Router.push("/");
+      Router.replace("/");
     }
   }, [me && me.id]);
   if (!me) {

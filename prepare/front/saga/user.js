@@ -19,6 +19,9 @@ import {
   UNFOLLOW_REQUEST,
   UNFOLLOW_SUCCESS,
   UNFOLLOW_FAILURE,
+  LOAD_USER_REQUEST,
+  LOAD_USER_SUCCESS,
+  LOAD_USER_FAILURE
 } from "../reducers/user";
 
 // userSaga
@@ -31,8 +34,35 @@ export default function* userSaga() {
     fork(watchChangeNickname),
     fork(watchFollow),
     fork(watchUnFollow),
+    fork(watchLoadUser),
   ]);
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////   watchLoadUser   //////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//액션 리스너
+function* watchLoadUser() {
+  yield takeLatest(LOAD_USER_REQUEST, loadUser)
+}
+//액션 핸들러
+function* loadUser(action) {
+  try {
+    const res = yield call(loadUserAPI)
+    yield put({ type: LOAD_USER_SUCCESS, data : res.data }) // res.status(200).send(user)를 받음
+  } catch (e) {
+    yield put({ type: LOAD_USER_FAILURE, error : e.response.data})
+  }
+}
+
+//API
+const loadUserAPI = () => {
+  return axios.get("/user")
+}
+
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////   watchLogin   ////////////////////////////////////////////////
@@ -46,9 +76,8 @@ function* watchLogin() {
 // 액션 핸들러
 function* logIn(action) {
   try {
-    // const res = yield call(loginAPI, action.data);
-    yield delay(1000);
-    yield put({ type: LOG_IN_SUCCESS, data: action.data }); // put은 리듀서에 dispatch 하는 이펙트. 액션 객체가 들어간다.
+    const res = yield call(loginAPI, action.data);
+    yield put({ type: LOG_IN_SUCCESS, data: res.data }); // put은 리듀서에 dispatch 하는 이펙트. 액션 객체가 들어간다.
   } catch (e) {
     yield put({ type: LOG_IN_FAILURE, error: e.response.data }); //에러는 여기에 담겨있다.
   }
@@ -56,7 +85,7 @@ function* logIn(action) {
 
 // API(call 이펙트를 위해 굳이 분리해야 한다.)
 const loginAPI = (data) => {
-  return axios.post("/api/login", data);
+  return axios.post("/user/login", data);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,18 +98,17 @@ function* watchLogOut() {
 }
 
 // 액션 핸들러
-function* logOut(action) {
+function* logOut() {
   try {
-    // const res = yield call(logoutAPI, action.data);
-    yield delay(1000);
+    const res = yield call(logoutAPI);
     yield put({ type: LOG_OUT_SUCCESS });
   } catch (e) {
     yield put({ type: LOG_OUT_FAILURE, error: e.response.data });
   }
 }
 // API
-const logoutAPI = (data) => {
-  return axios.post("/api/post", data);
+const logoutAPI = () => {
+  return axios.post("/user/logout");
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,11 +123,11 @@ function* watchSignUp() {
 // 액션 핸들러
 function* signUp(action) {
   try {
-    // const res = yield call(signupAPI, action.data);
-    yield delay(1000);
+    const res = yield call(signupAPI, action.data);
+    console.log(res)
     yield put({
       type: SIGN_UP_SUCCESS,
-      data: action.data,
+      data: res.data,
     });
   } catch (e) {
     yield put({
@@ -111,7 +139,7 @@ function* signUp(action) {
 
 // API
 const signupAPI = (data) => {
-  return axios.post("/api/signup", data);
+  return axios.post("/user", data);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,9 +154,8 @@ function* watchFollow() {
 // 액션 핸들러
 function* follow(action) {
   try {
-    // const res = yield call(followAPI, action.data);
-    yield delay(1000);
-    yield put({ type: FOLLOW_SUCCESS, data: action.data }); // put은 리듀서에 dispatch 하는 이펙트. 액션 객체가 들어간다.
+    const res = yield call(followAPI, action.data); // action.data = post.User.id
+    yield put({ type: FOLLOW_SUCCESS, data: res.data }); // res.data = { UserId : req.body.UserId, nickname : user.nickname}
   } catch (e) {
     yield put({ type: FOLLOW_FAILURE, error: e.response.data }); //에러는 여기에 담겨있다.
   }
@@ -136,7 +163,7 @@ function* follow(action) {
 
 // API(call 이펙트를 위해 굳이 분리해야 한다.)
 const followAPI = (data) => {
-  return axios.post("/api/follow", data);
+  return axios.patch("/user/follow", { UserId : data });
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,16 +178,15 @@ function* watchUnFollow() {
 // 액션 핸들러
 function* unFollow(action) {
   try {
-    // const res = yield call(unFollowAPI, action.data);
-    yield delay(1000);
-    yield put({ type: UNFOLLOW_SUCCESS, data: action.data });
+    const res = yield call(unFollowAPI, action.data); // action.data = post.User.id
+    yield put({ type: UNFOLLOW_SUCCESS, data: res.data }); // res.data = { UserId : req.body.UserId }
   } catch (e) {
     yield put({ type: UNFOLLOW_FAILURE, error: e.response.data });
   }
 }
 // API
 const unFollowAPI = (data) => {
-  return axios.post("/api/unfollow", data);
+  return axios.patch("/user/unfollow", { UserId : data }); //axios.delete("/user/{data}/follow") 이렇게도 가능.
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,11 +201,10 @@ function* watchChangeNickname() {
 // 액션 핸들러
 function* changeNickname(action) {
   try {
-    // const res = yield call(changeNicknameAPI, action.data);
-    yield delay(1000);
+    const res = yield call(changeNicknameAPI, action.data); // nickname => action.data
     yield put({
       type: CHANGE_NICKNAME_SUCCESS,
-      data: action.data,
+      data: res.data, // { nickname : req.body.nickname } => res.data 
     });
   } catch (e) {
     yield put({
@@ -191,5 +216,5 @@ function* changeNickname(action) {
 
 // API
 const changeNicknameAPI = (data) => {
-  return axios.post("/api/changenickname", data);
+  return axios.patch("/user/nickname", { nickname : data }); // { nickname : data } => req.body
 };

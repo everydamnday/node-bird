@@ -74,9 +74,18 @@ const initialState = {
   removePostLoading: false,
   removePostDone: false,
   removePostError: null,
-  addCommentLoading: true,
+  addCommentLoading: false,
   addCommentDone: false,
   addCommentError: null,
+  likePostLoading : false,
+  likePostDone : false,
+  likePostError : null,
+  unLikePostLoading : false,
+  unLikePostDone : false,
+  unLikePostError : null,
+  upLoadImageLoading : false,
+  upLoadImageDone : false,
+  upLoadImageError : null,
 };
 
 // faker 더미데이터 크리에이터
@@ -106,7 +115,6 @@ export const generateDummyPost = (number) => {
 export const LOAD_POST_REQUEST = "LOAD_POST_REQUEST";
 export const LOAD_POST_SUCCESS = "LOAD_POST_SUCCESS";
 export const LOAD_POST_FAILURE = "LOAD_POST_FAILURE";
-
 // 포스트 게시
 export const ADD_POST_REQUEST = "ADD_POST_REQUEST";
 export const ADD_POST_SUCCESS = "ADD_POST_SUCCESS";
@@ -119,6 +127,21 @@ export const ADD_COMMENT_FAILURE = "ADD_COMMENT_FAILURE";
 export const REMOVE_POST_REQUEST = "REMOVE_POST_REQUEST";
 export const REMOVE_POST_SUCCESS = "REMOVE_POST_SUCCESS";
 export const REMOVE_POST_FAILURE = "REMOVE_POST_FAILURE";
+// 게시글 좋아요
+export const LIKE_POST_REQUEST = "LIKE_POST_REQUEST";
+export const LIKE_POST_SUCCESS = "LIKE_POST_SUCCESS";
+export const LIKE_POST_FAILURE = "LIKE_POST_FAILURE";
+// 게시글 싫어요
+export const UNLIKE_POST_REQUEST = "UNLIKE_POST_REQUEST";
+export const UNLIKE_POST_SUCCESS = "UNLIKE_POST_SUCCESS";
+export const UNLIKE_POST_FAILURE = "UNLIKE_POST_FAILURE";
+// 이미지 업로드
+export const UPLOAD_IMAGE_REQUEST = "UPLOAD_IMAGE_REQUEST";
+export const UPLOAD_IMAGE_SUCCESS = "UPLOAD_IMAGE_SUCCESS";
+export const UPLOAD_IMAGE_FAILURE = "UPLOAD_IMAGE_FAILURE";
+// 이미지 제거(동기액션)
+export const REMOVE_IMAGE = "REMOVE_IMAGE"
+
 
 //////////////////////////////////////////////  액션 크리에이터  //////////////////////////////////////////////
 
@@ -189,10 +212,10 @@ const posts = (state = initialState, action) => {
         draft.addPostDone = false;
         draft.addPostError = null;
         break;
-      case ADD_POST_SUCCESS:
+      case ADD_POST_SUCCESS: action.data =post
         draft.addPostLoading = false;
         draft.addPostDone = true;
-        draft.mainPosts.unshift(dummyPost(action.data));
+        draft.mainPosts.unshift(action.data);
         break;
       case ADD_POST_FAILURE:
         draft.addPostLoading = false;
@@ -209,7 +232,7 @@ const posts = (state = initialState, action) => {
       case REMOVE_POST_SUCCESS:
         draft.removePostLoading = false;
         draft.removePostDone = true;
-        draft.mainPosts = draft.mainPosts.filter((v) => v.id !== action.data);
+        draft.mainPosts = draft.mainPosts.filter((v) => v.id !== action.data.PostId);
         break;
       case REMOVE_POST_FAILURE:
         draft.removePostLoading = false;
@@ -224,8 +247,8 @@ const posts = (state = initialState, action) => {
         draft.addCommentError = null;
         break;
       case ADD_COMMENT_SUCCESS:
-        const post = draft.mainPosts.find((v) => v.id === action.data.postId);
-        post.Comments.unshift(dummyComment(action.data));
+        const post = draft.mainPosts.find((v) => v.id === action.data.PostId);
+        post.Comments.unshift(action.data);
         // 불변성 지키는 문법...
         // console.log(action.data, "post reducer");
         // const postIndex = state.mainPosts.findIndex(
@@ -241,6 +264,69 @@ const posts = (state = initialState, action) => {
       case ADD_COMMENT_FAILURE:
         draft.addCommentLoading = false;
         draft.addCommentError = action.error;
+        break;
+      //////////////////////////////////////////////////////////////////////////////
+      //////////////////////////// LIKE_POST ///////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////
+      case LIKE_POST_REQUEST:
+        draft.likePostLoading = true;
+        draft.likePostDone = false;
+        draft.likePostError = null;
+        break;
+      case LIKE_POST_SUCCESS:{
+        draft.likePostLoading = false;
+        draft.likePostDone = true;
+        const post = draft.mainPosts.find( v => v.id === action.data.PostId) // 해당 포스트를 찾아서
+        post.Liker.push({ id : action.data.UserId}) // 라이크한 유저정보를 넣어준다.
+        break;
+      }
+      case LIKE_POST_FAILURE:
+        draft.likePostLoading = false;
+        draft.likePostError = action.error;
+        break;
+      //////////////////////////////////////////////////////////////////////////////
+      //////////////////////////// UNLIKE_POST ///////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////
+      case UNLIKE_POST_REQUEST:
+        draft.unLikePostLoading = true;
+        draft.unLikePostDone = false;
+        draft.unLikePostError = null;
+        break;
+      case UNLIKE_POST_SUCCESS:{
+        draft.unLikePostLoading = false;
+        draft.unLikePostDone = true;
+        const post = draft.mainPosts.find(v => v.id === action.data.PostId) // 포스트를 찾은다음
+        post.Liker = post.Liker.filter((v) => v.id !== action.data.UserId); // post.Likers 중의 작성자를 찾아 삭제
+        // post.Likers.splice(action.data.UserId, 1) // 참조는 원래 splice를 이렇게 써야 맞다.
+        break;
+      }
+      case UNLIKE_POST_FAILURE:
+        draft.unLikePostLoading = false;
+        draft.unLikePostError = action.error;
+        break;
+      //////////////////////////////////////////////////////////////////////////////
+      //////////////////////////// UPLOAD_IMAGE ///////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////
+      case UPLOAD_IMAGE_REQUEST:
+        draft.upLoadImageLoading = true;
+        draft.upLoadImageDone = false;
+        draft.upLoadImageError = null;
+        break;
+      case UPLOAD_IMAGE_SUCCESS:{
+        draft.upLoadImageLoading = false;
+        draft.upLoadImageDone = true;
+        draft.imagePaths = action.data; // files의 배열이 된다.
+        break;
+      }
+      case UPLOAD_IMAGE_FAILURE:
+        draft.upLoadImageLoading = false;
+        draft.upLoadImageError = action.error;
+        break;
+      //////////////////////////////////////////////////////////////////////////////
+      ////////////////////////////// REMOVE_IMAGE /////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////
+      case REMOVE_IMAGE:
+        draft.imagePaths = draft.imagePaths.filter( (v, i) => i !== action.data) // index
         break;
       default:
         break;

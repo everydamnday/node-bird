@@ -1,6 +1,10 @@
 import { all, fork } from "redux-saga/effects";
 import userSaga from "./user";
 import postSaga from "./posts";
+import axios from "axios";
+
+axios.defaults.baseURL = "http://localhost:3065"
+axios.defaults.withCredentials = true
 
 // root사가
 export default function* rootSaga() {

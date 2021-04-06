@@ -5,6 +5,7 @@ import PostForm from "../components/PostForm";
 import PostCard from "../components/PostCard";
 import { useEffect } from "react";
 import { LOAD_POST_REQUEST } from "../reducers/posts";
+import { loadUserRequestAction, LOAD_USER_REQUEST } from "../reducers/user";
 
 const Home = () => {
   const { me } = useSelector((state) => state.user);
@@ -14,9 +15,8 @@ const Home = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch({
-      type: LOAD_POST_REQUEST,
-    });
+    dispatch({ type: LOAD_USER_REQUEST })
+    dispatch({ type: LOAD_POST_REQUEST });
   }, []); // 처음에 10개 불러오기
 
   useEffect(() => {
